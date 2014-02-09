@@ -5,4 +5,7 @@ html_doc = urllib.urlopen('http://espn.go.com/mens-college-basketball/player/gam
 
 soup = BeautifulSoup(html_doc)
 
-print(soup.find(id="li.team-name"))
+links = soup.findAll("li", { "class" : "team-name" })
+
+for link in links:
+	print link.a.text

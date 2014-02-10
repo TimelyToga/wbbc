@@ -5,7 +5,19 @@ html_doc = urllib.urlopen('http://espn.go.com/mens-college-basketball/player/gam
 
 soup = BeautifulSoup(html_doc)
 
-links = soup.findAll("li", { "class" : "team-name" })
+rows = soup.findAll("tr", {'class':['evenrow', 'oddrow']})
 
-for link in links:
-	print link.a.text
+records = []
+
+for row in rows:
+	game = {}
+	game['team'] = row.find("li", {"class" : "team-name"}).text
+	# game['result'] = row.find(...)
+	records.append(game)
+
+print records
+
+# links = soup.findAll("li", { "class" : "team-name" })
+
+# for link in links:
+# 	print link.a.text

@@ -14,7 +14,6 @@ for row in rows:
 	game['team'] = row.find("li", {"class" : "team-name"}).text
 	game['result'] = row.find("span", {"class" : ['greenfont', 'redfont']}).text
 	rowStats = []
-	
 	records.append(game)
 
 print records

@@ -17,6 +17,3 @@ for row in rows:
 	records.append(game)
 
 print records
-
-//This comment is only for branch test
-// What about this

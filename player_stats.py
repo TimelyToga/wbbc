@@ -12,7 +12,9 @@ records = []
 for row in rows:
 	game = {}
 	game['team'] = row.find("li", {"class" : "team-name"}).text
-	# game['result'] = row.find(...)
+	game['result'] = row.find("span", {"class" : ['greenfont', 'redfont']}).text
+	rowStats = []
+	
 	records.append(game)
 
 print records

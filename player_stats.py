@@ -18,7 +18,4 @@ for row in rows:
 
 print records
 
-# links = soup.findAll("li", { "class" : "team-name" })
-
-# for link in links:
-# 	print link.a.text
+//This comment is only for branch test

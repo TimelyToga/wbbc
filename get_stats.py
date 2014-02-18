@@ -39,6 +39,11 @@ def playerGet(url):
 	global statsCount
 	playerCount += 1
 
+	# Gets demographic info about the player
+	playerName = soup.find("div", attrs={'class : mod-content'})
+	print playerName.h1.text
+
+	# Gets the data from the page, and then stores it in the nested list datasets
 	datasets = []
 	for row in table.find_all("tr")[1:]:
 		dataset = []		
@@ -121,8 +126,8 @@ def main():
 
 def cmdOptions():
 	parser = argparse.ArgumentParser(description='Scrape player data from ESPN')
-	parser.add_argument('-v', action='store_true')
-	parser.add_argument('-s', action='store_true')
+	parser.add_argument('-v', action='store_true') # verbose output of all data scraped
+	parser.add_argument('-s', action='store_true') # some output; i.e. the url's of the websites scraped
 	global args
 	args = parser.parse_args()
 

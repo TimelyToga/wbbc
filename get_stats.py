@@ -6,14 +6,18 @@ import argparse
 import sqlite3
 import time
 
+statsCount = 0
 playerCount = 0
 teamCount = 0
 
 ## Creates the sql database. Currently filename is generated from time.
 createTable_sql = open('create_pgs.sql', 'r').read()
-time = str(time.strftime("%d_%m %H:%M"))
-conn = sqlite3.connect(time + '.db')
+time = 'db' + str(time.strftime("%d_%m_%H_%M_%S"))
+dbName = time + '.db'
+conn = sqlite3.connect(dbName)
 c = conn.cursor()
+conn.commit()
+
 try:
     c.executescript(createTable_sql)
 except Exception as e:
@@ -32,20 +36,20 @@ def playerGet(url):
 
 	# Create a unique player id
 	global playerCount
+	global statsCount
 	playerCount += 1
 
 	datasets = []
 	for row in table.find_all("tr")[1:]:
-		dataset = []
+		dataset = []		
+		statsCount += 1
+		dataset.append(statsCount)
 		dataset.append(playerCount)
 		for td in row.find_all("td"):
-			data = td.get_text()
+			data = td.get_text().encode('utf_8', 'ignore')
 			dataset.append(data)
-			print dataset[1]
-		datasets.append(dataset)
-
-	# DB that shit
-	playerStore(datasets)
+		if(dataset[2] != 'DATE'):
+			datasets.append(dataset)
 
 	# Verbose printing code given the -v in the terminal
 	global args
@@ -53,20 +57,30 @@ def playerGet(url):
 		for k in datasets:
 			print (datasets[datasets.index(k)])
 
+	# DB that shit
+	playerStore(datasets)
+
+### This method stores the data from one player into the current db
 def playerStore(datasets):
 	### TODO: Insert the new player's data into a database
+	global c
+	global conn
+	global playerCount
 	for dataset in datasets:
-		if len(dataset) != 3:
-			game_date = dataset[0]
-			# TODO: add all the data to variables that make sense
-
-			# TODO: Store those variables in the database via the 
-	print datasets
+		if len(dataset) == 19:
+			# Store the row into  player_game_stats
+			execututionString = "INSERT INTO player_game_stats VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+			c.execute(execututionString, dataset)
+	if(playerCount % 10 == 0):
+		conn.commit()
+		print "Successfully written " + str(playerCount)
 
 # This method cycles through all the players on a team roster page
 # and then calls the playerGet() for each of those players
 def teamGet(url):
-	print "working on" + url[30:]
+	global args
+	if(args.s):
+		print "working on: " + url[30:]
 	team_url = urllib.urlopen(url).read()
 	teamSoup = BeautifulSoup(team_url)
 	playerTable = teamSoup.find("table", attrs={"class":"tablehead"})
@@ -80,7 +94,8 @@ def teamGet(url):
 		if len(elements) != 0:
 			# Formats the team url correctly
 			player_url = 'http://espn.go.com' + elements[0].a.get('href')
-			print player_url
+			if(args.s):
+				print player_url
 			playerGet(player_url)
 
 # Grabs and then loops through all the NCAA Men's Basketball teams, and then calls teamGet() for each
@@ -107,6 +122,7 @@ def main():
 def cmdOptions():
 	parser = argparse.ArgumentParser(description='Scrape player data from ESPN')
 	parser.add_argument('-v', action='store_true')
+	parser.add_argument('-s', action='store_true')
 	global args
 	args = parser.parse_args()
 

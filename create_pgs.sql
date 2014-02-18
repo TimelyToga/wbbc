@@ -2,8 +2,24 @@ CREATE TABLE player_game_stats
 (
 	stats_entry_id INTEGER PRIMARY KEY,
 	player_id int,
-	player_name varchar(25),
-	team_id int,
-	team_name varchar(25),
-	game_date varchar(25)
+	game_date varchar(25),
+	--player_name varchar(25),
+	--team_id int,
+	--team_name varchar(25),
+	vs_team varchar(25),
+	outcome varchar(25),
+	min int,
+	fgm_fga varchar(7),
+	fg_per FLOAT(4),
+	threem_threea varchar(7),
+	three_per FLOAT(4),
+	ftm_fta varchar(7),
+	ft_per FLOAT(4),
+	rebounds int,
+	assists int, 
+	blocks int,
+	steals int,
+	fouls int,
+	turnovers int,
+	points int
 );

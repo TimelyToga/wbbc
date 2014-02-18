@@ -40,7 +40,7 @@ def playerGet(url):
 	playerCount += 1
 
 	# Gets demographic info about the player
-	playerName = soup.find("div", attrs={'class : mod-content'})
+	plasyerName = soup.find("div", attrs={'class : mod-content'})
 	print playerName.h1.text
 
 	# Gets the data from the page, and then stores it in the nested list datasets

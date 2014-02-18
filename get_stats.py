@@ -62,8 +62,9 @@ def playerGet(url):
 		for k in datasets:
 			print (datasets[datasets.index(k)])
 
-	# DB that shit
-	playerStore(datasets)
+	if(!args.t):
+		# DB that shit
+		playerStore(datasets)
 
 ### This method stores the data from one player into the current db
 def playerStore(datasets):
@@ -128,7 +129,8 @@ def cmdOptions():
 	parser = argparse.ArgumentParser(description='Scrape player data from ESPN')
 	parser.add_argument('-v', action='store_true') # verbose output of all data scraped
 	parser.add_argument('-s', action='store_true') # some output; i.e. the url's of the websites scraped
+	parser.add_argument('-t', action='store_true') # test mode: only scrapes one player, no db
 	global args
 	args = parser.parse_args()
 
-main() ## MAIN METHOD CALL
+#main() ## MAIN METHOD CALL

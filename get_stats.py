@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 import urllib
 import re
-import csv
 import argparse
 import sqlite3
 import time
@@ -37,21 +36,7 @@ def createDB():
 	    raise
 	print "Database " + dbName + " created."
 
-def createCSV():
-	#createTable_sql = open('create_pgs.sql', 'r').read()
 
-	## Creates the csv file. Currently filename is generated from the current time.
-	time = 'db' + str(time.strftime("%d_%m_%H_%M_%S"))
-	global csvName
-	csvName = time + '.csv'
-
-    writer = csv.writer(open(csvName, "ab"), delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    return True
-
-def storeCSVRow(dataset):
-	writer = csv.writer(open(csvName, "ab"), delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-   	writer.writerow(dataset)
-	return True
 # This method scrapes the data from a certain player's 'gamelog'
 # page. It outputs the data to the correct format.
 def playerGet(url):
@@ -63,11 +48,12 @@ def playerGet(url):
 	# Create a unique player id
 	global playerCount
 	global statsCount
+	global teamCount
 	playerCount += 1
 
 	# Gets demographic info about the player
-	plasyerName = soup.find("div", attrs={'class : mod-content'})
-	print playerName.h1.text
+	playerName = soup.find("div", {'class' : 'mod-container mod-no-header-footer mod-page-header mod-full-mug'}).find("div", {'class' : 'mod-content'}).h1.text
+	teamName = soup.find("ul", {'class' : 'last'}).a.text
 
 	# Gets the data from the page, and then stores it in the nested list datasets
 	datasets = []
@@ -76,6 +62,9 @@ def playerGet(url):
 		statsCount += 1
 		dataset.append(statsCount)
 		dataset.append(playerCount)
+		dataset.append(teamCount)
+		dataset.append(playerName)
+		dataset.append(teamName)
 		for td in row.find_all("td"):
 			data = td.get_text().encode('utf_8', 'ignore')
 			dataset.append(data)
@@ -104,7 +93,7 @@ def playerStore(datasets):
 	for dataset in datasets:
 		if len(dataset) == 19:
 			# Store the row into  player_game_stats
-			execututionString = "INSERT INTO player_game_stats VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+			execututionString = "INSERT INTO player_game_stats VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 			c.execute(execututionString, dataset)
 	if(playerCount % 10 == 0):
 		conn.commit()
@@ -150,11 +139,15 @@ def main():
 	reg = re.compile(r'Roster') # The search condition; only grabs a objects with text equal to this
 	teamRosterList = [e for e in leagueSoup.find_all('a') if reg.match(e.text)]
 
+	# Load the teamCount variable so each player gets a team id #
+	global teamCount
+
 	# Gets stats for each team found
 	for team in teamRosterList:
 		baseRoster_url = 'http://espn.go.com/mens-college-basketball/team/roster/_/id/'
 		# Grabs only the numbers out of the link and then formats it correctly to be called with teamGet()
 		callingTeam_url = baseRoster_url + re.findall(r'\d+', team.get('href'))[0]
+		teamCount += 1
 		teamGet(callingTeam_url)
 
 def cmdOptions():

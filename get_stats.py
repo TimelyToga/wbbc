@@ -6,26 +6,52 @@ import argparse
 import sqlite3
 import time
 
+# id count tags
 statsCount = 0
 playerCount = 0
 teamCount = 0
 
-## Creates the sql database. Currently filename is generated from time.
-createTable_sql = open('create_pgs.sql', 'r').read()
-time = 'db' + str(time.strftime("%d_%m_%H_%M_%S"))
-dbName = time + '.db'
-conn = sqlite3.connect(dbName)
-c = conn.cursor()
-conn.commit()
+# Creates the Database
+def createDB():
+	# init the global variables
+	global time
+	global time
+	global dbName
+	global conn
+	global c
 
-try:
-    c.executescript(createTable_sql)
-except Exception as e:
-    errorMessage = time + ': ' + str(e)
-    print'Error: ' + errorMessage
-    c.close()
-    raise
+	## Creates the sql database. Currently filename is generated from time.
+	createTable_sql = open('create_pgs.sql', 'r').read()
+	time = 'db' + str(time.strftime("%d_%m_%H_%M_%S"))
+	dbName = time + '.db'
+	conn = sqlite3.connect(dbName)
+	c = conn.cursor()
+	conn.commit()
 
+	try:
+	    c.executescript(createTable_sql)
+	except Exception as e:
+	    errorMessage = time + ': ' + str(e)
+	    print'Error: ' + errorMessage
+	    c.close()
+	    raise
+	print "Database " + dbName + " created."
+
+def createCSV():
+	#createTable_sql = open('create_pgs.sql', 'r').read()
+
+	## Creates the csv file. Currently filename is generated from the current time.
+	time = 'db' + str(time.strftime("%d_%m_%H_%M_%S"))
+	global csvName
+	csvName = time + '.csv'
+
+    writer = csv.writer(open(csvName, "ab"), delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    return True
+
+def storeCSVRow(dataset):
+	writer = csv.writer(open(csvName, "ab"), delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+   	writer.writerow(dataset)
+	return True
 # This method scrapes the data from a certain player's 'gamelog'
 # page. It outputs the data to the correct format.
 def playerGet(url):
@@ -62,9 +88,12 @@ def playerGet(url):
 		for k in datasets:
 			print (datasets[datasets.index(k)])
 
-	if(!args.t):
+	# If the script isn't running in test mode, then store the data in the database
+	if(not args.t):
 		# DB that shit
 		playerStore(datasets)
+		if(args.s):
+			print "I justed stored some data."
 
 ### This method stores the data from one player into the current db
 def playerStore(datasets):
@@ -108,6 +137,9 @@ def teamGet(url):
 def main():
 	cmdOptions() # allows output supression 
 
+	global args
+	if(not args.t):
+		createDB()
 	# Cycles through all the teams on the main league page
 	league_url = "http://espn.go.com/mens-college-basketball/teams"
 	leaguePage = urllib.urlopen(league_url)
@@ -133,4 +165,4 @@ def cmdOptions():
 	global args
 	args = parser.parse_args()
 
-#main() ## MAIN METHOD CALL
+main() ## MAIN METHOD CALL

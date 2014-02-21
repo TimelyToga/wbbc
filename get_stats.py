@@ -4,6 +4,7 @@ import re
 import argparse
 import sqlite3
 import time
+import sys
 
 # id count tags
 statsCount = 0
@@ -21,7 +22,7 @@ def createDB():
 
 	## Creates the sql database. Currently filename is generated from time.
 	createTable_sql = open('create_pgs.sql', 'r').read()
-	time = 'db' + str(time.strftime("%d_%m_%H_%M_%S"))
+	time = 'dbAllStats' #+ #str(time.strftime("%d_%m_%H_%M_%S"))
 	dbName = time + '.db'
 	conn = sqlite3.connect(dbName)
 	c = conn.cursor()
@@ -51,25 +52,36 @@ def playerGet(url):
 	global teamCount
 	playerCount += 1
 
+	# Initialize the variables
+	playerName = ""
+	teamName = ""
+
 	# Gets demographic info about the player
-	playerName = soup.find("div", {'class' : 'mod-container mod-no-header-footer mod-page-header mod-full-mug'}).find("div", {'class' : 'mod-content'}).h1.text
-	teamName = soup.find("ul", {'class' : 'last'}).a.text
+	try:
+		playerName = soup.find("div", {'class' : 'mod-container mod-no-header-footer mod-page-header mod-full-mug'}).find("div", {'class' : 'mod-content'}).h1.text
+		teamName = soup.find("ul", {'class' : 'general-info'}).find('li', {'class' : 'last'}).a.text
+	except AttributeError:
+		print "Dude. Attribute error."
+
 
 	# Gets the data from the page, and then stores it in the nested list datasets
 	datasets = []
-	for row in table.find_all("tr")[1:]:
-		dataset = []		
-		statsCount += 1
-		dataset.append(statsCount)
-		dataset.append(playerCount)
-		dataset.append(teamCount)
-		dataset.append(playerName)
-		dataset.append(teamName)
-		for td in row.find_all("td"):
-			data = td.get_text().encode('utf_8', 'ignore')
-			dataset.append(data)
-		if(dataset[2] != 'DATE'):
-			datasets.append(dataset)
+	try:
+		for row in table.find_all("tr")[1:]:
+			dataset = []		
+			statsCount += 1
+			dataset.append(statsCount)
+			dataset.append(playerCount)
+			dataset.append(teamCount)
+			dataset.append(playerName)
+			dataset.append(teamName)
+			for td in row.find_all("td"):
+				data = td.get_text().encode('utf_8', 'ignore')
+				dataset.append(data)
+			if(dataset[2] != 'DATE'):
+				datasets.append(dataset)
+	except AttributeError:
+		print "I missed a player."
 
 	# Verbose printing code given the -v in the terminal
 	global args
@@ -77,23 +89,28 @@ def playerGet(url):
 		for k in datasets:
 			print (datasets[datasets.index(k)])
 
+	# Prints demographic information for 'some' mode (-s)
+	if(args.s):
+		print playerName + ", " + teamName
+
 	# If the script isn't running in test mode, then store the data in the database
 	if(not args.t):
 		# DB that shit
 		playerStore(datasets)
-		if(args.s):
-			print "I justed stored some data."
+
+	# If in 'test' mode (-t), then it will exit after one player
+	if(args.t):
+		sys.exit()
 
 ### This method stores the data from one player into the current db
 def playerStore(datasets):
-	### TODO: Insert the new player's data into a database
 	global c
 	global conn
 	global playerCount
 	for dataset in datasets:
-		if len(dataset) == 19:
+		if len(dataset) == 22:
 			# Store the row into  player_game_stats
-			execututionString = "INSERT INTO player_game_stats VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+			execututionString = "INSERT INTO player_game_stats VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 			c.execute(execututionString, dataset)
 	if(playerCount % 10 == 0):
 		conn.commit()

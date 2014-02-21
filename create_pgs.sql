@@ -2,10 +2,10 @@ CREATE TABLE player_game_stats
 (
 	stats_entry_id INTEGER PRIMARY KEY,
 	player_id int,
+	team_id int,
+	player_name varchar(25),
+	team_name varchar(25),
 	game_date varchar(25),
-	--player_name varchar(25),
-	--team_id int,
-	--team_name varchar(25),
 	vs_team varchar(25),
 	outcome varchar(25),
 	min int,
